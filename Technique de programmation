@@ -1,1 +1,101 @@
 
+#Automatic Translation of Subtitles Using Different Translators API (DeepL, Google Translate, OpenAI)
+#RAGUSA Simona / KINDBEITER Arnaud
+
+######Packages needed######## 
+#install.packages("httr")   #
+#install.packages("stringr")#
+#############################
+
+rm(list = ls()) #Cleaning the working environment
+t = Sys.time()
+library(httr)
+library(stringr)
+
+api_key_deepl = "07485d6e-3c77-4fa1-bfee-cc2f82f9b44a:fx" #You have to create an account to get a new API Key
+
+deepl_translation <- function(inputfile, language, api_key_deepl) {
+  answer = POST(
+    url = "https://api-free.deepl.com/v2/translate",
+    body = list(
+      auth_key = api_key_deepl,
+      text = inputfile,
+      target_lang = toupper(language)  #DeepL uses uppercase language code (ex : en => EN)
+    ),
+    encode = "form"
+  )
+  response_data = content(answer, "parsed", encoding = "UTF-8")
+  
+  #Check if the translation is available or not
+  if (!is.null(response_data$translations) && length(response_data$translations) > 0) { #If the translation is not null and the length of the answer > 0 then return the response
+    return(response_data$translations[[1]]$text)
+  } else {                                                                              #If anything else happen => error
+    message("Translation error or no translation available.")
+    return(NULL)
+  }
+}
+
+translations <- function(inputfile, language){
+  lines = readLines(inputfile, encoding = "UTF-8")
+  translated_lines = list()
+  text_block = c()
+  timing = NULL
+  
+  for(line in lines){
+    if (grepl("-->",line)){
+      if(length(text_block)>0){
+        original_text = paste(text_block, collapse ="")
+        translated_text = deepl_translation(original_text, language, api_key_deepl)
+        translated_lines = c(translated_lines, timing, paste(translated_text, "\n"))
+        text_block = c() #To reset text_block and avoid translating multiple times the same thing
+      }
+      timing = line #Stock the timing line
+    }
+    else if (str_trim(line) %in% as.character(1:99999)){ #If the line corresponds to a subtitle number, then the number is stored to preserve the file structure.
+      translated_lines = c(translated_lines,line)
+    }
+    else if(str_trim(line) != ""){ #If the line is not empty
+      line_without_tag = gsub("</?i>", "", str_trim(line))#Removing the HTML tags and the unnecessary spaces
+      text_block = c(text_block, line_without_tag)
+    }
+    else{ #If the line is empty
+      if(length(text_block)>0){ #If the text_block is not empty
+        original_text = paste(text_block, collapse ="") #We merge every lines 
+        translated_text = deepl_translation(original_text, language, api_key_deepl) #Translating the text using the deepl_translation function and the language wanted by the user
+        translated_lines = c(translated_lines, timing, paste(translated_text, "\n")) #Adding the timing and the translated text to the list of translated lines
+        text_block <- c() #Resetting text_block for the next text_block translation
+      }
+      translated_lines <- c(translated_lines, line) #Adding the timing or number of the line to the translated_lines list
+    }
+  }
+  
+  if (length(text_block)>0){ #If there is a last block that is not followed by timing (at the end of the file)
+    original_text = paste(text_block, collapse ="")
+    translated_text = deepl_translation(original_text, language, api_key_deepl)
+    translated_lines = c(translated_lines, timing, paste(translated_text, "\n"))
+  }
+  
+  translated_lines = unlist(translated_lines) #We transform the list into a single vector
+  # We write the translated content to a new .srt file
+  outputfile = gsub(".srt", paste0("_translated_", language, ".srt"), inputfile)  
+  print(paste("The subtitles have been translated in", language, "and saved to:", outputfile))
+  writeLines(translated_lines, outputfile, useBytes = TRUE)
+}
+
+#test = deepl_translation( #test function to test api outputs with specific words 
+#  inputfile ="bonjour",
+#  language, 
+#  api_key_deepl
+#)
+#print(test)
+
+################MODIFY THE INPUTFILE AND THE LANGUAGE YOU WANT TO TRANSLATE TO BEFORE RUNNING###################
+
+inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate 
+language = "ru" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
+translations(inputfile, language)
+
+################################################################################################################
+
+Sys.time() - t
+

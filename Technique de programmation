@@ -1,6 +1,4 @@
-
 #Automatic Translation of Subtitles Using Different Translators API (DeepL, Google Translate, OpenAI)
-#RAGUSA Simona / KINDBEITER Arnaud
 
 ######Packages needed######## 
 #install.packages("httr")   #
@@ -35,6 +33,13 @@ deepl_translation <- function(inputfile, language, api_key_deepl) {
   }
 }
 
+# Function to process and translate a block of text
+process_translation_block <- function(text_block, timing, language, api_key_deepl) {
+  original_text = paste(text_block, collapse = "")#We merge every lines 
+  translated_text = deepl_translation(original_text, language, api_key_deepl) #Translating the text using the deepl_translation function and the language wanted by the user
+  return(c(timing, paste(translated_text, "\n")))
+}
+
 translations <- function(inputfile, language){
   lines = readLines(inputfile, encoding = "UTF-8")
   translated_lines = list()
@@ -60,9 +65,7 @@ translations <- function(inputfile, language){
     }
     else{ #If the line is empty
       if(length(text_block)>0){ #If the text_block is not empty
-        original_text = paste(text_block, collapse ="") #We merge every lines 
-        translated_text = deepl_translation(original_text, language, api_key_deepl) #Translating the text using the deepl_translation function and the language wanted by the user
-        translated_lines = c(translated_lines, timing, paste(translated_text, "\n")) #Adding the timing and the translated text to the list of translated lines
+        translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, api_key_deepl))
         text_block <- c() #Resetting text_block for the next text_block translation
       }
       translated_lines <- c(translated_lines, line) #Adding the timing or number of the line to the translated_lines list
@@ -70,9 +73,7 @@ translations <- function(inputfile, language){
   }
   
   if (length(text_block)>0){ #If there is a last block that is not followed by timing (at the end of the file)
-    original_text = paste(text_block, collapse ="")
-    translated_text = deepl_translation(original_text, language, api_key_deepl)
-    translated_lines = c(translated_lines, timing, paste(translated_text, "\n"))
+    translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, api_key_deepl))
   }
   
   translated_lines = unlist(translated_lines) #We transform the list into a single vector
@@ -92,10 +93,9 @@ translations <- function(inputfile, language){
 ################MODIFY THE INPUTFILE AND THE LANGUAGE YOU WANT TO TRANSLATE TO BEFORE RUNNING###################
 
 inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate 
-language = "ru" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
+language = "en" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
 translations(inputfile, language)
 
 ################################################################################################################
 
 Sys.time() - t
-

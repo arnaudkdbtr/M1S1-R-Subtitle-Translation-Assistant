@@ -1,7 +1,5 @@
 #Automatic Translation of Subtitles Using Different Translators API (DeepL, Google Translate, OpenAI)
 
-#RAGUSA Simona / KINDBEITER Arnaud
-
 ######Packages needed################ 
 #install.packages("httr")           # 
 #install.packages("stringr")        #
@@ -13,7 +11,7 @@ library(httr)
 library(stringr)
 
 api_key_deepl = "07485d6e-3c77-4fa1-bfee-cc2f82f9b44a:fx" #You have to create an account to get a new API Key
-api_key_openai = "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" # OpenAI API Key
+api_key_openai = "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" #OpenAI API Key
 
 # Function for translation using DeepL
 deepl_translation = function(inputfile, language, api_key_deepl) {
@@ -150,18 +148,6 @@ translations <- function(inputfile, language, service) {
   print(paste("The subtitles have been translated in", language, "and saved to:", outputfile))
   writeLines(translated_lines, outputfile, useBytes = TRUE)
 }
-
-#test = deepl_translation( #test function to test api outputs with specific words 
-#  inputfile ="bonjour",
-#  language, 
-#  api_key_deepl
-#)
-#print(test)
-
-#test_input = "Hello"
-#language = "ru"
-#test_response = openai_translation(test_input, language, api_key_openai)
-#print(test_response)
 
 ################MODIFY THE INPUTFILE / SERVICE / LANGUAGE BEFORE RUNNING###################
 

@@ -1,9 +1,11 @@
 #Automatic Translation of Subtitles Using Different Translators API (DeepL, Google Translate, OpenAI)
 
-######Packages needed######## 
-#install.packages("httr")   #
-#install.packages("stringr")#
-#############################
+#RAGUSA Simona / KINDBEITER Arnaud
+
+######Packages needed################ 
+#install.packages("httr")           # 
+#install.packages("stringr")        #
+#####################################
 
 rm(list = ls()) #Cleaning the working environment
 t = Sys.time()
@@ -11,8 +13,10 @@ library(httr)
 library(stringr)
 
 api_key_deepl = "07485d6e-3c77-4fa1-bfee-cc2f82f9b44a:fx" #You have to create an account to get a new API Key
+api_key_openai = "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" # OpenAI API Key
 
-deepl_translation <- function(inputfile, language, api_key_deepl) {
+# Function for translation using DeepL
+deepl_translation = function(inputfile, language, api_key_deepl) {
   answer = POST(
     url = "https://api-free.deepl.com/v2/translate",
     body = list(
@@ -28,7 +32,54 @@ deepl_translation <- function(inputfile, language, api_key_deepl) {
   if (!is.null(response_data$translations) && length(response_data$translations) > 0) { #If the translation is not null and the length of the answer > 0 then return the response
     return(response_data$translations[[1]]$text)
   } else {                                                                              #If anything else happen => error
-    message("Translation error or no translation available.")
+    message("(DeepL) Translation error or no translation available.")
+    return(NULL)
+  }
+}
+
+# Function for translation using Google Translate
+google_translation = function(inputfile, language) {
+  url = paste0(
+    "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=",
+    language,
+    "&dt=t&q=",
+    URLencode(inputfile)
+  )
+  
+  response = GET(url)
+  response_data = content(response, "parsed", encoding = "UTF-8")
+  
+  if (!is.null(response_data) && length(response_data) > 0) {
+    translated_text = sapply(response_data[[1]], function(x) x[[1]])
+    return(paste(translated_text, collapse = " "))
+  } else {
+    message("(Google Translate) Translation error or no translation available.")
+    return(NULL)
+  }
+}
+
+# Function for translation using OpenAI (ChatGPT)
+openai_translation = function(inputfile, language, api_key_openai) {
+  url = "https://api.openai.com/v1/chat/completions"
+  headers = c(
+    `Authorization` = paste("Bearer", api_key_openai),
+    `Content-Type` = "application/json"
+  )
+  
+  body = paste0(
+    '{"model": "gpt-3.5-turbo", "messages": [',
+    '{"role": "system", "content": "You are a translator. Translate the following text into ', language, '"},',
+    '{"role": "user", "content": "', gsub('"', '\\"', inputfile), '"}',
+    ']}'
+  )
+  
+  response = POST(url, add_headers(.headers = headers), body = body)
+  response_data = content(response, "parsed", encoding = "UTF-8")
+  
+  if (!is.null(response_data$choices) && length(response_data$choices) > 0) {
+    return(response_data$choices[[1]]$message$content)
+  } else {
+    message("(ChatGPT) Translation error or no translation available.")
     return(NULL)
   }
 }
@@ -40,7 +91,24 @@ process_translation_block <- function(text_block, timing, language, api_key_deep
   return(c(timing, paste(translated_text, "\n")))
 }
 
-translations <- function(inputfile, language){
+# Function to process and translate a block of text
+process_translation_block <- function(text_block, timing, language, service, api_key_deepl) {
+  original_text = paste(text_block, collapse = "") # Merge all lines
+  
+  if (service == "deepl") {
+    translated_text = deepl_translation(original_text, language, api_key_deepl)
+  } else if (service == "google") {
+    translated_text = google_translation(original_text, language)
+  } else if (service == "chatgpt") {
+    translated_text = openai_translation(original_text, language, api_key_openai)
+  } else {
+    stop("Invalid translation service specified. Use 'deepl', 'google', or 'chatgpt'.")
+  }
+  
+  return(c(timing, paste(translated_text, "\n")))
+}
+
+translations <- function(inputfile, language, service) {
   lines = readLines(inputfile, encoding = "UTF-8")
   translated_lines = list()
   text_block = c()
@@ -65,7 +133,7 @@ translations <- function(inputfile, language){
     }
     else{ #If the line is empty
       if(length(text_block)>0){ #If the text_block is not empty
-        translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, api_key_deepl))
+        translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, service, api_key_deepl))
         text_block <- c() #Resetting text_block for the next text_block translation
       }
       translated_lines <- c(translated_lines, line) #Adding the timing or number of the line to the translated_lines list
@@ -73,7 +141,7 @@ translations <- function(inputfile, language){
   }
   
   if (length(text_block)>0){ #If there is a last block that is not followed by timing (at the end of the file)
-    translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, api_key_deepl))
+    translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, service, api_key_deepl))
   }
   
   translated_lines = unlist(translated_lines) #We transform the list into a single vector
@@ -90,12 +158,17 @@ translations <- function(inputfile, language){
 #)
 #print(test)
 
-################MODIFY THE INPUTFILE AND THE LANGUAGE YOU WANT TO TRANSLATE TO BEFORE RUNNING###################
+#test_input = "Hello"
+#language = "ru"
+#test_response = openai_translation(test_input, language, api_key_openai)
+#print(test_response)
+
+################MODIFY THE INPUTFILE / SERVICE / LANGUAGE BEFORE RUNNING###################
 
 inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate 
-language = "en" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
-translations(inputfile, language)
-
+language = "ru" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
+service = "google" #Choose "deepl" or "google" or "chatgpt"
+translations(inputfile, language, service)
 ################################################################################################################
 
 Sys.time() - t

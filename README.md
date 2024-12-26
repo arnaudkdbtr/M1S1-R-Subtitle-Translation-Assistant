@@ -1,4 +1,4 @@
-**Automatic Subtitle Translation**
+# **Automatic Subtitle Translation**
 
 When we try to watch an episode of our favorite series or a movie on streaming platforms, it's common to find the video in its original language with subtitles in a language other than the one we prefer. 
 This situation can be especially frustrating when we're looking for subtitles in a specific language, like French, for a movie with Italian voices. 

@@ -11,7 +11,7 @@ library(httr)
 library(stringr)
 
 api_key_deepl = "07485d6e-3c77-4fa1-bfee-cc2f82f9b44a:fx" #You have to create an account to get a new API Key
-api_key_openai = "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" #OpenAI API Key
+api_key_openai = "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" # OpenAI API Key
 
 # Function for translation using DeepL
 deepl_translation = function(inputfile, language, api_key_deepl) {
@@ -83,15 +83,8 @@ openai_translation = function(inputfile, language, api_key_openai) {
 }
 
 # Function to process and translate a block of text
-process_translation_block <- function(text_block, timing, language, api_key_deepl) {
-  original_text = paste(text_block, collapse = "")#We merge every lines 
-  translated_text = deepl_translation(original_text, language, api_key_deepl) #Translating the text using the deepl_translation function and the language wanted by the user
-  return(c(timing, paste(translated_text, "\n")))
-}
-
-# Function to process and translate a block of text
 process_translation_block <- function(text_block, timing, language, service, api_key_deepl) {
-  original_text = paste(text_block, collapse = "") # Merge all lines
+  original_text = paste(text_block, collapse = "\n") 
   
   if (service == "deepl") {
     translated_text = deepl_translation(original_text, language, api_key_deepl)
@@ -103,6 +96,9 @@ process_translation_block <- function(text_block, timing, language, service, api
     stop("Invalid translation service specified. Use 'deepl', 'google', or 'chatgpt'.")
   }
   
+  # Preserve the separate lines in the translated block
+  translated_lines = str_split(translated_text, "\n")[[1]]
+  
   return(c(timing, paste(translated_text, "\n")))
 }
 
@@ -111,6 +107,12 @@ translations <- function(inputfile, language, service) {
   translated_lines = list()
   text_block = c()
   timing = NULL
+  
+  # Check file format (SRT or VTT)
+  is_vtt = grepl("WEBVTT", lines[1])
+  if (is_vtt) {
+    lines = lines[-1] # Remove the "WEBVTT" line
+  }
   
   for(line in lines){
     if (grepl("-->",line)){
@@ -125,8 +127,19 @@ translations <- function(inputfile, language, service) {
     else if (str_trim(line) %in% as.character(1:99999)){ #If the line corresponds to a subtitle number, then the number is stored to preserve the file structure.
       translated_lines = c(translated_lines,line)
     }
+    
+    else if (grepl("^NOTE", line)) {  # Détection de la ligne de note
+      # Ajouter la ligne de note sans traduction
+      translated_lines = c(translated_lines, line)
+    }
+    
+    else if (grepl("^Slide [0-9]+", line)) {  # Détection des titres de chapitres comme "Slide 1"
+      # Ajouter le titre du chapitre sans traduction
+      translated_lines = c(translated_lines, line)
+    } 
+    
     else if(str_trim(line) != ""){ #If the line is not empty
-      line_without_tag = gsub("</?i>", "", str_trim(line))#Removing the HTML tags and the unnecessary spaces
+      line_without_tag = gsub("</?[a-z]+>", "", str_trim(line)) # Remove HTML-like tags and the unnecessary spaces
       text_block = c(text_block, line_without_tag)
     }
     else{ #If the line is empty
@@ -143,16 +156,17 @@ translations <- function(inputfile, language, service) {
   }
   
   translated_lines = unlist(translated_lines) #We transform the list into a single vector
-  # We write the translated content to a new .srt file
-  outputfile = gsub(".srt", paste0("_translated_", language, ".srt"), inputfile)  
+  # We write the translated content to a new file
+  output_ext = if (is_vtt) ".vtt" else ".srt"
+  outputfile = gsub("\\.(srt|vtt)$", paste0("_translated_", language, output_ext), inputfile)
   print(paste("The subtitles have been translated in", language, "and saved to:", outputfile))
   writeLines(translated_lines, outputfile, useBytes = TRUE)
 }
 
 ################MODIFY THE INPUTFILE / SERVICE / LANGUAGE BEFORE RUNNING###################
 
-inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate 
-language = "ru" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
+inputfile = "c:/Users/axima/Downloads/TEST.vtt" #Subtitles file you wanna translate 
+language = "it" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
 service = "google" #Choose "deepl" or "google" or "chatgpt"
 translations(inputfile, language, service)
 ################################################################################################################

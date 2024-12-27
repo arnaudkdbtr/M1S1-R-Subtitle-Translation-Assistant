@@ -8,17 +8,15 @@ To solve this problem, we came up with the idea of creating a tool that automati
 ## **Features:**
 
 ### Translation of Subtitles:
-- Once subtitles are extracted, the program translates them into the language of your choice using APIs such as DeepL, Google Translate, or OpenAI.
+- Automatically translates subtitles into the target language using one of three translation services: DeepL, Google Translate, or OpenAI's ChatGPT.
+- Supports multiple subtitle formats, including .srt and .vtt.
+- Maintains original subtitle structure, including timing, line numbers, and special lines (like chapter titles or notes).
 
 ### Subtitle Extraction (Work in progress...)
 - The program can extract subtitles directly from video files (e.g., .mp4, .avi) using tools like ffmpeg or libraries in R.
   
 ### Re-embedding Translated Subtitles: (Work in progress...)
 - After translating the subtitles, the program can re-embed them into the video file, making it ready for playback with the new subtitles.
-  
-### Subtitle File Handling (Work in progress...)
-- The tool supports multiple subtitle file formats such as .srt and .vtt.
-- It also handles encoding issues, converting subtitles from different encodings (e.g., ANSI, Latin-1) to UTF-8 for compatibility with translation services.
   
 ### Subtitle Search and Download (Work in progress...)
 - The program can search for subtitle files from online repositories (e.g., SubDL) based on the movie or episode name.

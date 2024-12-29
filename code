@@ -9,7 +9,6 @@ rm(list = ls()) #Cleaning the working environment
 
 library(httr)
 library(stringr)
-library(jsonlite)
 
 t = Sys.time()
 
@@ -55,32 +54,6 @@ google_translation = function(inputfile, language) {
     return(paste(translated_text, collapse = " "))
   } else {
     message("(Google Translate) Translation error or no translation available.")
-    return(NULL)
-  }
-}
-
-#Function for translation using OpenAI (ChatGPT)
-openai_translation = function(inputfile, language, api_key_openai) {
-  url = "https://api.openai.com/v1/chat/completions"
-  headers = c(
-    `Authorization` = paste("Bearer", api_key_openai),
-    `Content-Type` = "application/json"
-  )
-  
-  body = paste0(
-    '{"model": "gpt-3.5-turbo", "messages": [',
-    '{"role": "system", "content": "You are a translator. Translate the following text into ', language, '"},',
-    '{"role": "user", "content": "', gsub('"', '\\"', inputfile), '"}',
-    ']}'
-  )
-  
-  response = POST(url, add_headers(.headers = headers), body = body)
-  response_data = content(response, "parsed", encoding = "UTF-8")
-  
-  if (!is.null(response_data$choices) && length(response_data$choices) > 0) {
-    return(response_data$choices[[1]]$message$content)
-  } else {
-    message("(ChatGPT) Translation error or no translation available.")
     return(NULL)
   }
 }
@@ -163,22 +136,10 @@ translations <- function(inputfile, language, service) {
   writeLines(translated_lines, outputfile, useBytes = TRUE)
 }
 
-#test = deepl_translation( #test function to test api outputs with specific words 
-#  inputfile ="bonjour",
-#  language, 
-#  api_key_deepl
-#)
-#print(test)
-
-#test_input = "Hello"
-#language = "ru"
-#test_response = openai_translation(test_input, language, api_key_openai)
-#print(test_response)
-
 ################MODIFY THE INPUTFILE / SERVICE / LANGUAGE BEFORE RUNNING##########################################
 inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate                         #
 language = "en" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) #
-service = "google" #Choose "deepl" or "google" or "chatgpt"                                                      #
+service = "google" #Choose "deepl" or "google"                                                                   #
 translations(inputfile, language, service)                                                                       #
 ##################################################################################################################
 

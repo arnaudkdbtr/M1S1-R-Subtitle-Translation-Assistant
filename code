@@ -196,6 +196,24 @@ languages_deepl <- list(
   "Korean" = "ko", "Indonesian" = "id", "Arabic" = "ar"
 )
 
+languages_google_translate <- list(
+  "French" = "fr", "Spanish" = "es", "German" = "de", "Italian" = "it",
+  "Portuguese" = "pt", "Dutch" = "nl", "Russian" = "ru", 
+  "Chinese (Simplified)" = "zh", "Japanese" = "ja", "Korean" = "ko", 
+  "Arabic" = "ar", "Hindi" = "hi", "Turkish" = "tr", "Swedish" = "sv",
+  "Polish" = "pl", "Ukrainian" = "uk", "Greek" = "el", "Danish" = "da",
+  "Finnish" = "fi", "Czech" = "cs", "Norwegian" = "no", "Romanian" = "ro",
+  "Serbian" = "sr", "Croatian" = "hr", "Catalan" = "ca", "Basque" = "eu",
+  "Bengali" = "bn", "Guarani" = "gn", "Kurdish" = "ku", "Swahili" = "sw",
+  "Cebuano" = "ceb", "Tagalog" = "tl", "Vietnamese" = "vi", "Tamil" = "ta",
+  "Telugu" = "te", "Marathi" = "mr", "Hebrew" = "he", "Malayalam" = "ml",
+  "Gujarati" = "gu", "Kannada" = "kn", "Punjabi" = "pa", "Mongolian" = "mn",
+  "Nepali" = "ne", "Afrikaans" = "af", "Icelandic" = "is", "Lithuanian" = "lt",
+  "Latvian" = "lv", "Estonian" = "et", "Slovak" = "sk", "Slovenian" = "sl",
+  "Hmong" = "hmn", "Sundanese" = "su", "Xhosa" = "xh", "Yiddish" = "yi",
+  "Zulu" = "zu", "Lao" = "lo", "Bulgarian" = "bg"
+)
+
 #User UI
 ui <- fluidPage(
   titlePanel("Automatic Subtitle Translation"),
@@ -228,7 +246,7 @@ server <- function(input, output, session) {
     if (input$service == "deepl") {
       updateSelectInput(session, "language", choices = languages_deepl)
     } else {
-      updateSelectInput(session, "language", choices = languages_all)
+      updateSelectInput(session, "language", choices = languages_google_translate)
     }
   })
   

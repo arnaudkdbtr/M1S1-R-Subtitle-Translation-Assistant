@@ -9,14 +9,45 @@ rm(list = ls()) #Cleaning the working environment
 
 library(httr)
 library(stringr)
+library(jsonlite)
+library(shiny)
 
 t = Sys.time()
+
+#List of languages supported by DeepL
+languages_deepl = list(
+  "Arabic" = "ar", "Bulgarian" = "bg", "Chinese (Simplified)" = "zh", 
+  "Czech" = "cs", "Danish" = "da", "Dutch" = "nl", "English" = "en", 
+  "Estonian" = "et", "Finnish" = "fi", "French" = "fr", "German" = "de", 
+  "Greek" = "el", "Hungarian" = "hu", "Italian" = "it", "Japanese" = "ja", 
+  "Korean" = "ko", "Latvian" = "lv", "Lithuanian" = "lt", "Polish" = "pl", 
+  "Portuguese" = "pt", "Romanian" = "ro", "Russian" = "ru", "Slovak" = "sk", 
+  "Slovenian" = "sl", "Spanish" = "es", "Swedish" = "sv", "Turkish" = "tr", 
+  "Ukrainian" = "uk"
+)
+
+#List of languages supported by Google Translate
+languages_google_translate = list(
+  "Afrikaans" = "af", "Arabic" = "ar", "Basque" = "eu", "Bengali" = "bn", 
+  "Catalan" = "ca", "Chinese (Simplified)" = "zh", "Czech" = "cs", 
+  "Croatian" = "hr", "Danish" = "da", "Dutch" = "nl", "Finnish" = "fi", 
+  "French" = "fr", "German" = "de", "Greek" = "el", "Guarani" = "gn", 
+  "Hebrew" = "he", "Hindi" = "hi", "Hmong" = "hmn", "Icelandic" = "is", 
+  "Italian" = "it", "Japanese" = "ja", "Kannada" = "kn", "Korean" = "ko", 
+  "Kurdish" = "ku", "Latvian" = "lv", "Lithuanian" = "lt", "Malayalam" = "ml", 
+  "Marathi" = "mr", "Mongolian" = "mn", "Nepali" = "ne", "Norwegian" = "no", 
+  "Polish" = "pl", "Portuguese" = "pt", "Punjabi" = "pa", "Romanian" = "ro", 
+  "Russian" = "ru", "Serbian" = "sr", "Slovak" = "sk", "Slovenian" = "sl", 
+  "Spanish" = "es", "Swahili" = "sw", "Swedish" = "sv", "Tamil" = "ta", 
+  "Telugu" = "te", "Thai" = "th", "Turkish" = "tr", "Ukrainian" = "uk", 
+  "Vietnamese" = "vi", "Xhosa" = "xh", "Yiddish" = "yi", "Zulu" = "zu"
+)
 
 api_key_deepl = "07485d6e-3c77-4fa1-bfee-cc2f82f9b44a:fx" #You have to create an account to get a new API Key
 api_key_openai = "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" # OpenAI API Key
 
 #Function for translation using DeepL
-deepl_translation = function(inputfile, language, api_key_deepl) {
+deepl_translation <- function(inputfile, language, api_key_deepl) {
   answer = POST(
     url = "https://api-free.deepl.com/v2/translate",
     body = list(
@@ -38,7 +69,7 @@ deepl_translation = function(inputfile, language, api_key_deepl) {
 }
 
 #Function for translation using Google Translate
-google_translation = function(inputfile, language) {
+google_translation <- function(inputfile, language) {
   url = paste0(
     "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=",
     language,
@@ -118,9 +149,9 @@ translations <- function(inputfile, language, service) {
     else{ #If the line is empty
       if(length(text_block)>0){ #If the text_block is not empty
         translated_lines = c(translated_lines, process_translation_block(text_block, timing, language, service, api_key_deepl))
-        text_block <- c() #Resetting text_block for the next text_block translation
+        text_block = c() #Resetting text_block for the next text_block translation
       }
-      translated_lines <- c(translated_lines, line) #Adding the timing or number of the line to the translated_lines list
+      translated_lines = c(translated_lines, line) #Adding the timing or number of the line to the translated_lines list
     }
   }
   
@@ -129,18 +160,68 @@ translations <- function(inputfile, language, service) {
   }
   
   translated_lines = unlist(translated_lines) #We transform the list into a single vector
-  #We write the translated content to a new file
   output_ext = if (is_vtt) ".vtt" else ".srt"
   outputfile = gsub("\\.(srt|vtt)$", paste0("_translated_", language, output_ext), inputfile)
-  print(paste("The subtitles have been translated in", language, "and saved to:", outputfile))
   writeLines(translated_lines, outputfile, useBytes = TRUE)
+  
+  list(output = outputfile, preview = translated_lines)
 }
 
-################MODIFY THE INPUTFILE / SERVICE / LANGUAGE BEFORE RUNNING##########################################
-inputfile = "c:/Users/axima/Downloads/subtitles.srt" #Subtitles file you wanna translate                         #
-language = "en" #Targeted language of translation (https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) #
-service = "google" #Choose "deepl" or "google"                                                                   #
-translations(inputfile, language, service)                                                                       #
-##################################################################################################################
+#Shiny UI 
+ui = fluidPage(
+  titlePanel("Subtitle Translator"),
+  sidebarLayout(
+    sidebarPanel(
+      fileInput("fileInput", "Upload Subtitle File (SRT or VTT)", accept = c(".srt", ".vtt")),
+      radioButtons("service", "Translation Service", 
+                   choices = list("DeepL" = "deepl", "Google Translate" = "google"), 
+                   selected = "deepl"),  # Default service
+      uiOutput("languageUI"), # Dynamic language selector
+      actionButton("translate", "Translate"),
+      downloadButton("download", "Download Translated Subtitles")
+    ),
+    mainPanel(
+      h3("Preview of Translated Subtitles"),
+      verbatimTextOutput("preview")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  
+  #Update language options based on the selected service
+  output$languageUI = renderUI({
+    req(input$service)  # Ensure that the service has been selected
+    if (input$service == "deepl") {
+      selectInput("language", "Target Language", choices = languages_deepl)
+    } else {
+      selectInput("language", "Target Language", choices = languages_google_translate)
+    }
+  })
+  
+  translation_result = reactiveVal(NULL)
+  
+  observeEvent(input$translate, {
+    req(input$fileInput, input$language, input$service)
+    translation = translations(input$fileInput$datapath, input$language, input$service)
+    translation_result(translation)
+  })
+  
+  output$preview = renderText({
+    req(translation_result())
+    paste(translation_result()$preview, collapse = "\n")
+  })
+  
+  output$download = downloadHandler(
+    filename = function() {
+      basename(translation_result()$output)
+    },
+    content = function(file) {
+      file.copy(translation_result()$output, file)
+    }
+  )
+}
+
+shinyApp(ui = ui, server = server)
 
 Sys.time() - t

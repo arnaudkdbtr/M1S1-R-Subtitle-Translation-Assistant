@@ -52,15 +52,15 @@ The Shiny UI allows you to upload new subtitle files (with the default being the
 ### Search for Subtitles:
 
 Enter the name of the movie : La haine
-
+```
 _Search results :_
 
-_1: La haine (1995), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-3292_
+1: La haine (1995), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-3292
 
-_2: Romeo & Juliette: De la haine a l'amour (2002), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-37310_
+2: Romeo & Juliette: De la haine a l'amour (2002), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-37310
 
-_3: Inde, l'ideologie de la haine (2024), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-1829958_
-
+3: Inde, l'ideologie de la haine (2024), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-1829958
+```
 ### Choose a number to display the corresponding subtitles : 1
 
 _Available subtitles :_

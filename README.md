@@ -80,7 +80,7 @@ Available subtitles :
 ### Select a number to download the corresponding subtitles: 3 (if we want the german subtitles for example)
 
 ```
-Subtitles downloaded and extracted in: File saved as: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt
+Subtitles downloaded and extracted in: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt
 ```
 
 ### Open the User Interface : 

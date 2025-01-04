@@ -52,28 +52,36 @@ The Shiny UI allows you to upload new subtitle files (with the default being the
 ### Search for Subtitles:
 
 Enter the name of the movie : La haine
+
 ```
-_Search results :_
+Search results :
 
 1: La haine (1995), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-3292
 
 2: Romeo & Juliette: De la haine a l'amour (2002), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-37310
 
 3: Inde, l'ideologie de la haine (2024), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-1829958
+(...)
 ```
+
 ### Choose a number to display the corresponding subtitles : 1
 
-_Available subtitles :_
+```
+Available subtitles :
 
-_1: la-haine Language : he URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12911350_
+1: la-haine Language : he URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12911350
 
-_2: la-haine Language : tr URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12874982_
+2: la-haine Language : tr URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12874982
 
-_3: la-haine Language : de URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12855448_
+3: la-haine Language : de URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12855448
+(...)
+```
 
 ### Select a number to download the corresponding subtitles: 3 (if we want the german subtitles for example)
 
-_Subtitles downloaded and extracted in: File saved as: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt_
+```
+Subtitles downloaded and extracted in: File saved as: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt
+```
 
 ### Open the User Interface : 
 
@@ -109,8 +117,8 @@ The total translation time will be displayed at the bottom of the preview.
 
 To download the final translated subtitle file, click on Download translated subtitles.
 
-## Future Improvements
+## Potential Future Features
 
 - Additional Subtitle Formats : Support for more subtitle formats (e.g., .ass, .sub) will be added.
 
-- ChatGPT (OpenAI) API Support : Integration of the ChatGPT (OpenAI) API to translate subtitle files.
+- ChatGPT (OpenAI) API Support : Integration of the ChatGPT (OpenAI) API to translate subtitle files (But using the API is not free).

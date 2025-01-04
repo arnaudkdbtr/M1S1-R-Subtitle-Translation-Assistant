@@ -51,7 +51,7 @@ The Shiny UI allows you to upload new subtitle files (with the default being the
 
 ### Search for Subtitles:
 
-Enter the name of the movie : La haine
+Enter the name of the movie : "La haine"
 
 ```
 Search results :
@@ -64,7 +64,7 @@ Search results :
 (...)
 ```
 
-### Choose a number to display the corresponding subtitles : 1
+### Choose a number to display the corresponding subtitles : "1"
 
 ```
 Available subtitles :
@@ -77,7 +77,7 @@ Available subtitles :
 (...)
 ```
 
-### Select a number to download the corresponding subtitles: 3 (if we want the german subtitles for example)
+### Select a number to download the corresponding subtitles: "3" (if we want the german subtitles for example)
 
 ```
 Subtitles downloaded and extracted in: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt

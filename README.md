@@ -23,7 +23,9 @@ A user-friendly Shiny interface to upload subtitle files, select translation ser
 ## **Installation:**
 
 To use the program, you need to install the required R packages. You can install them using the following commands:
+```
 install.packages(c("httr", "stringr", "jsonlite", "shiny", "rvest", "dplyr", "readr"))
+```
 
 ### Setup : 
 
@@ -51,52 +53,60 @@ The Shiny UI allows you to upload new subtitle files (with the default being the
 
 Enter the name of the movie : La haine
 
-Search results :
+_Search results :_
 
-1: La haine (1995), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-3292
-2: Romeo & Juliette: De la haine a l'amour (2002), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-37310
-3: Inde, l'ideologie de la haine (2024), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-1829958
+_1: La haine (1995), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-3292_
 
-Choose a number to display the corresponding subtitles : 1
+_2: Romeo & Juliette: De la haine a l'amour (2002), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-37310_
+
+_3: Inde, l'ideologie de la haine (2024), URL : https://www.opensubtitles.org/fr/search/sublanguageid-all/idmovie-1829958_
+
+### Choose a number to display the corresponding subtitles : 1
 
 _Available subtitles :_
+
 _1: la-haine Language : he URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12911350_
+
 _2: la-haine Language : tr URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12874982_
+
 _3: la-haine Language : de URL : https://www.opensubtitles.org/fr/subtitleserve/sub/12855448_
 
-Select a number to download the corresponding subtitles: 3 (if we want the german subtitles for example)
+### Select a number to download the corresponding subtitles: 3 (if we want the german subtitles for example)
 
 _Subtitles downloaded and extracted in: File saved as: subtitles/La.Haine.1995.1080p.BluRay.x264.AAC5.1-[YTS.MX]-Hass.german_utf8.srt_
 
-Open the User Interface : 
+### Open the User Interface : 
+
 The user interface will open, and the previously downloaded file will be preloaded automatically.
 
-Replace the Preloaded File : 
+### Replace the Preloaded File : 
+
 If you wish to translate another file, you can replace the preloaded file by using the section: Change current file uploaded (SRT or VTT). Simply click on Browse to select your new subtitle file.
 
-Select the Translation Service :
+### Select the Translation Service :
 
-If you have replaced the API key in the program, choose DeepL as the translation service.
-Otherwise, select Google Translate.
+If you have replaced the API key in the program, choose DeepL as the translation service. Otherwise, select Google Translate.
 
-Choose the Target Language : 
+### Choose the Target Language : 
 
 Select the language you want to translate the subtitles into.
 
-Translate the Subtitles : 
+### Translate the Subtitles : 
 
-Click on the Translate button.
-Please wait.
+Click on the Translate button and wait...
 
 _Note: Files uploaded to OpenSubtitles are film subtitles, which can contain a large number of characters. Translation may take a few minutes (up to 5 minutes if the file is large)._
 
-Preview the Translated Subtitles :
+### Preview the Translated Subtitles :
+
 Once the translation is complete, the translated text will appear on the right-hand side of the interface.
 
-Check the Translation Time : 
+### Check the Translation Time : 
+
 The total translation time will be displayed at the bottom of the preview.
 
-Download the Translated Subtitles :
+### Download the Translated Subtitles :
+
 To download the final translated subtitle file, click on Download translated subtitles.
 
 ## Future Improvements

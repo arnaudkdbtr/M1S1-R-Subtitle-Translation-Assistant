@@ -24,7 +24,14 @@ A user-friendly Shiny interface to upload subtitle files, select translation ser
 
 To use the program, you need to install the required R packages. You can install them using the following commands:
 ```
-install.packages(c("httr", "stringr", "jsonlite", "shiny", "rvest", "dplyr", "readr"))
+if (!require("httr")) install.packages("httr")
+if (!require("stringr")) install.packages("stringr")
+if (!require("stringi")) install.packages("stringi")
+if (!require("jsonlite")) install.packages("jsonlite")
+if (!require("shiny")) install.packages("shiny")
+if (!require("rvest")) install.packages("rvest")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("readr")) install.packages("readr")
 ```
 
 ### Setup : 

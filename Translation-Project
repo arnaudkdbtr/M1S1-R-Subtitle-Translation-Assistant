@@ -5,6 +5,7 @@ rm(list = ls()) #Cleaning the working environment
 #Checking if required packages are installed; if not, installing them
 if (!require("httr")) install.packages("httr")
 if (!require("stringr")) install.packages("stringr")
+if (!require("stringi")) install.packages("stringi")
 if (!require("jsonlite")) install.packages("jsonlite")
 if (!require("shiny")) install.packages("shiny")
 if (!require("rvest")) install.packages("rvest")
@@ -19,30 +20,38 @@ library(shiny)
 library(rvest)
 library(dplyr)
 library(readr)
+library(stringi)
 
-#Function to detect encoding
+api_key_deepl = "INSERT API KEY" #You have to create an account to get a new API Key
+
+#Function to detect encoding with stringi
 detect_encoding <- function(input_file) {
-  encoding_info = readr::guess_encoding(input_file, n_max = 100)
-  detected_encoding = encoding_info$encoding[1]
+  content <- readBin(input_file, what = "raw", n = file.size(input_file))
+  encodings <- stri_enc_detect(content)
+  
+  #Finding encoding with the most confidence
+  encoding_info <- encodings[[1]]
+  detected_encoding <- encoding_info$Encoding[which.max(encoding_info$Confidence)]
+  
   return(detected_encoding)
 }
 
 #Function to search on OpenSubtitles and retrieve results
 get_open_subtitles_results <- function(query) {
-  url = paste0("https://www.opensubtitles.org/fr/search2/moviename-", gsub(" ", "+", query), "/sublanguageid-all")
-  page = read_html(url)
+  url <- paste0("https://www.opensubtitles.org/fr/search2/moviename-", gsub(" ", "+", query), "/sublanguageid-all")
+  page <- read_html(url)
   
-  movie_names = page %>% 
+  movie_names <- page %>% 
     html_nodes("a[class='bnone']") %>% 
     html_text() %>% 
     gsub("\n|\t", "", .)
   
-  movie_links = page %>% 
+  movie_links <- page %>% 
     html_nodes("a[class='bnone']") %>% 
     html_attr("href") %>% 
     paste0("https://www.opensubtitles.org", .)
   
-  results = data.frame(
+  results <- data.frame(
     movie_name = movie_names,
     link = movie_links,
     stringsAsFactors = FALSE
@@ -53,9 +62,9 @@ get_open_subtitles_results <- function(query) {
 
 #Function to extract available subtitles for the user search query
 get_subtitles <- function(movie_url) {
-  page = read_html(movie_url)
+  page <- read_html(movie_url)
   
-  subtitles = page %>% 
+  subtitles <- page %>% 
     html_nodes("td[id^='main'] a[class='bnone']") %>% 
     html_attr("href")
   
@@ -67,10 +76,10 @@ download_subtitle <- function(download_url, dest_dir = "subtitles") {
   if (!dir.exists(dest_dir)) dir.create(dest_dir)
   
   #Create a temporary folder for this specific operation
-  temp_dir = tempfile(pattern = "subtitles_temp")
+  temp_dir <- tempfile(pattern = "subtitles_temp")
   dir.create(temp_dir)
   
-  temp_file = tempfile(fileext = ".zip")
+  temp_file <- tempfile(fileext = ".zip")
   
   #Download zip file
   GET(download_url, write_disk(temp_file, overwrite = TRUE))
@@ -79,19 +88,19 @@ download_subtitle <- function(download_url, dest_dir = "subtitles") {
   unzip(temp_file, exdir = temp_dir)
   
   #List only files in the temporary folder
-  files = list.files(temp_dir, recursive = TRUE, full.names = TRUE)
+  files <- list.files(temp_dir, recursive = TRUE, full.names = TRUE)
   
   #Filter .srt files and exclude unnecessary files
-  nfo_files = files[grepl("\\.nfo$", files, ignore.case = TRUE)]
+  nfo_files <- files[grepl("\\.nfo$", files, ignore.case = TRUE)]
   if (length(nfo_files) > 0) {
     file.remove(nfo_files)
   }
   
-  srt_files = files[grepl("\\.srt$", files, ignore.case = TRUE)]
+  srt_files <- files[grepl("\\.srt$", files, ignore.case = TRUE)]
   
   if (length(srt_files) > 0) {
     #Move .srt files to the subtitles folder
-    moved_files = file.copy(srt_files, dest_dir, overwrite = TRUE)
+    moved_files <- file.copy(srt_files, dest_dir, overwrite = TRUE)
     
     #Clean temporary folder
     unlink(temp_dir, recursive = TRUE)
@@ -111,45 +120,39 @@ download_subtitle <- function(download_url, dest_dir = "subtitles") {
   }
 }
 
-#Function to convert the downloaded subtitle to UTF-8 only if necessary
-convert_subtitle_to_utf8_if_needed <- function(input_file, output_file) {
-  detected_encoding = detect_encoding(input_file)
+#Function to convert to UTF-8
+convert_to_utf8 <- function(input_file, output_file) {
+  #Encoding detection
+  detected_encoding <- detect_encoding(input_file)
+  message("Encodage détecté : ", detected_encoding)
   
-  if (detected_encoding == "UTF-8") {
-    message("The file is already in UTF-8 encoding. No conversion needed.")
-    return(input_file)  # Return original file if no conversion needed
-  }
-  
-  content = tryCatch(
-    readLines(input_file, encoding = detected_encoding),
-    error = function(e) {
-      stop("Error reading file: ", e$message)
-    }
-  )
-  
-  content_utf8 <- tryCatch(
-    iconv(content, from = detected_encoding, to = "UTF-8", sub = "byte"),
-    error = function(e) {
-      stop("Error converting to UTF-8: ", e$message)
-    }
-  )
-  
-  tryCatch(
+  #Play file with detected encoding
+  content <- tryCatch(
     {
-      writeLines(content_utf8, output_file, useBytes = TRUE)
-      message("Successful conversion. File saved as: ", output_file)
-      
-      if (file.exists(input_file)) {
-        file.remove(input_file)
-        message("Old file deleted: ", input_file)
-      }
-      
-      return(output_file)  #Return the new converted file
+      readLines(input_file, encoding = detected_encoding, warn = FALSE)
     },
     error = function(e) {
-      stop("Error writing file: ", e$message)
+      stop("Error reading file with detected encoding (", detected_encoding, "): ", e$message)
     }
   )
+  
+  #Converting to UTF-8
+  output_file <- sub("\\.srt$", "_utf8.srt", input_file)
+  tryCatch({
+    utf8_content <- iconv(content, from = detected_encoding, to = "UTF-8", sub = "byte")
+    writeLines(utf8_content, output_file, useBytes = TRUE)
+    message("Conversion to UTF-8 successfully completed and saved: ", output_file)
+    
+    #Deleting the original file after conversion
+    if (file.exists(input_file)) {
+      file.remove(input_file)
+      message("Original file deleted : ", input_file)
+    }
+    
+    return(output_file)
+  }, error = function(e) {
+    stop("Error converting to UTF-8 : ", e$message)
+  })
 }
 
 #List of languages supported by DeepL
@@ -180,8 +183,6 @@ languages_google_translate = list(
   "Telugu" = "te", "Thai" = "th", "Turkish" = "tr", "Ukrainian" = "uk", 
   "Vietnamese" = "vi", "Xhosa" = "xh", "Yiddish" = "yi", "Zulu" = "zu"
 )
-
-api_key_deepl = "INSERT API KEY" #You have to create an account to get a new API Key
 
 #Function for translation using DeepL
 deepl_translation <- function(inputfile, language, api_key_deepl) {
@@ -305,9 +306,9 @@ translations <- function(inputfile, language, service) {
 main <- function() {
   #Step 1: Search, download and convert
   cat("Enter the name of a movie : ")
-  query = readline()
+  query <- readline()
   
-  results = get_open_subtitles_results(query)
+  results <- get_open_subtitles_results(query)
   
   if (nrow(results) == 0) {
     cat("No results found.\n")
@@ -320,43 +321,43 @@ main <- function() {
   }
   
   cat("\nChoose a number to display the corresponding subtitles : ")
-  choice = as.numeric(readline())
+  choice <- as.numeric(readline())
   
   if (!is.na(choice) && choice > 0 && choice <= nrow(results)) {
-    selected_url = results$link[choice]
-    subtitles = get_subtitles(selected_url)
+    selected_url <- results$link[choice]
+    subtitles <- get_subtitles(selected_url)
     
     if (length(subtitles) > 0) {
       cat("\nAvailable subtitles :\n")
       for (i in seq_along(subtitles)) {
-        subtitle_parts = gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1 \\2 \\3", subtitles[i])
-        subtitle_info = strsplit(subtitle_parts, " ")[[1]]
-        id = subtitle_info[1]
-        title = subtitle_info[2]
-        language = subtitle_info[3]
-        complete_url = paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", id)
+        subtitle_parts <- gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1 \\2 \\3", subtitles[i])
+        subtitle_info <- strsplit(subtitle_parts, " ")[[1]]
+        id <- subtitle_info[1]
+        title <- subtitle_info[2]
+        language <- subtitle_info[3]
+        complete_url <- paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", id)
         cat(i, ": ", title, " Language : ", language, " URL : ", complete_url, "\n", sep = "")
       }
       
       cat("\nSelect a number to download the corresponding subtitles: ")
-      sub_choice = as.numeric(readline())
+      sub_choice <- as.numeric(readline())
       
       if (!is.na(sub_choice) && sub_choice > 0 && sub_choice <= length(subtitles)) {
-        subtitle_parts = gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1", subtitles[sub_choice])
-        download_url = paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", subtitle_parts)
-        srt_files = download_subtitle(download_url)
+        subtitle_parts <- gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1", subtitles[sub_choice])
+        download_url <- paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", subtitle_parts)
+        srt_files <- download_subtitle(download_url)
         
         if (!is.null(srt_files)) {
-          last_file = tail(srt_files, n = 1)  #Work only on the last file downloaded
-          output_file = sub("\\.srt$", "_utf8.srt", last_file)
+          last_file <- tail(srt_files, n = 1)  #Work only on the last file downloaded
+          output_file <- sub("\\.srt$", "_utf8.srt", last_file)
           
-          final_file = convert_subtitle_to_utf8_if_needed(last_file, output_file)
+          final_file <- convert_to_utf8(last_file, output_file)
           
-          #Step 2: Launch Shiny UI with the downloaded file preloaded
+          #Step 2: Launch Shiny UI with the downloaded file
           cat("Download and conversion complete. Launching translation interface...\n")
           
           #Shiny User Interface
-          ui = fluidPage(
+          ui <- fluidPage(
             titlePanel("Subtitle Translator"),
             sidebarLayout(
               sidebarPanel(
@@ -380,8 +381,8 @@ main <- function() {
           
           server <- function(input, output, session) {
             translation_duration = reactiveVal(NULL)  # Reactive value to store duration
-            default_file_path = final_file
-            temp_file_path = tempfile(fileext = ".srt")
+            default_file_path <- final_file
+            temp_file_path <- tempfile(fileext = ".srt")
             
             # Copy the default file to a temporary path at startup
             if (file.exists(default_file_path)) {
@@ -389,7 +390,7 @@ main <- function() {
             }
             
             #Reactive value to store the currently selected file
-            current_file = reactiveVal(temp_file_path)
+            current_file <- reactiveVal(temp_file_path)
             
             observe({
               req(input$fileInput)
@@ -397,7 +398,7 @@ main <- function() {
               current_file(input$fileInput$datapath)
             })
             
-            output$defaultFileInfo = renderText({
+            output$defaultFileInfo <- renderText({
               if (is.null(input$fileInput)) {
                 paste("Current file uploaded :", basename(default_file_path))
               } else {

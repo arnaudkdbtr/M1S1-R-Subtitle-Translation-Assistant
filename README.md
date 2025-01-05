@@ -6,6 +6,14 @@ The goal of this project is to enhance the user experience by translating subtit
 
 ## **Features:**
 
+### Subtitle Search and Download
+
+Searches for subtitles directly on **OpenSubtitles** based on the name of the movie or series. Downloads the corresponding files for immediate use.
+
+### File Encoding Management
+
+Automatically detects the encoding of downloaded subtitle files. Converts files to UTF-8 encoding to ensure compatibility and consistency.
+
 ### Subtitle Translation:
 Automatically translates subtitles using one of the following services:
 - DeepL

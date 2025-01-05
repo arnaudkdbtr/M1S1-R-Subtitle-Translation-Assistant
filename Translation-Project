@@ -124,7 +124,7 @@ download_subtitle <- function(download_url, dest_dir = "subtitles") {
 convert_to_utf8 <- function(input_file, output_file) {
   #Encoding detection
   detected_encoding <- detect_encoding(input_file)
-  message("Encodage détecté : ", detected_encoding)
+  message("Detected encoding : ", detected_encoding)
   
   #Play file with detected encoding
   content <- tryCatch(

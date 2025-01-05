@@ -1,0 +1,209 @@
+library(httr)
+library(rvest)
+library(dplyr)
+library(readr)
+library(stringi)
+
+#Fonction pour détecter l'encodage avec stringi
+detect_with_stringi <- function(file_path) {
+  content <- readBin(file_path, what = "raw", n = file.size(file_path))
+  encodings <- stri_enc_detect(content)
+  
+  # Trouver l'encodage avec la plus grande confiance
+  encoding_info <- encodings[[1]]
+  best_encoding <- encoding_info$Encoding[which.max(encoding_info$Confidence)]
+  
+  return(best_encoding)
+}
+
+#Fonction pour convertir en UTF-8 uniquement si nécessaire
+convert_to_utf8 <- function(file_path) {
+  #Détection de l'encodage
+  detected_encoding <- detect_with_stringi(file_path)
+  message("Encodage détecté : ", detected_encoding)
+  
+  #Lecture du fichier avec l'encodage détecté
+  content <- tryCatch(
+    {
+      readLines(file_path, encoding = detected_encoding, warn = FALSE)
+    },
+    error = function(e) {
+      stop("Erreur lors de la lecture du fichier avec l'encodage détecté (", detected_encoding, "): ", e$message)
+    }
+  )
+  
+  #Conversion en UTF-8
+  output_path <- sub("\\.srt$", "_utf8.srt", file_path)
+  tryCatch({
+    utf8_content <- iconv(content, from = detected_encoding, to = "UTF-8", sub = "byte")
+    writeLines(utf8_content, output_path, useBytes = TRUE)
+    message("Conversion réussie et sauvegardée en UTF-8 : ", output_path)
+    
+    #Supprimer le fichier d'origine après conversion
+    if (file.exists(file_path)) {
+      file.remove(file_path)
+      message("Fichier d'origine supprimé : ", file_path)
+    }
+    
+    return(output_path)
+  }, error = function(e) {
+    stop("Erreur lors de la conversion en UTF-8 :", e$message)
+  })
+}
+
+
+#Fonction de recherche sur OpenSubtitles et récupération des résultats
+get_open_subtitles_results <- function(query) {
+  url <- paste0("https://www.opensubtitles.org/fr/search2/moviename-", gsub(" ", "+", query), "/sublanguageid-all")
+  page <- read_html(url)
+  
+  movie_names <- page %>% 
+    html_nodes("a[class='bnone']") %>% 
+    html_text() %>% 
+    gsub("\n|\t", "", .)
+  
+  movie_links <- page %>% 
+    html_nodes("a[class='bnone']") %>% 
+    html_attr("href") %>% 
+    paste0("https://www.opensubtitles.org", .)
+  
+  results <- data.frame(
+    movie_name = movie_names,
+    link = movie_links,
+    stringsAsFactors = FALSE
+  )
+  
+  return(results)
+}
+
+#Fonction pour extraire les sous-titres disponibles
+get_subtitles <- function(movie_url) {
+  page <- read_html(movie_url)
+  
+  subtitles <- page %>% 
+    html_nodes("td[id^='main'] a[class='bnone']") %>% 
+    html_attr("href")
+  
+  return(subtitles)
+}
+
+#Fonction pour télécharger et extraire les sous-titres
+download_subtitle <- function(download_url, dest_dir = "subtitles") {
+  if (!dir.exists(dest_dir)) dir.create(dest_dir)
+  
+  #Créer un dossier temporaire pour l'opération spécifique
+  temp_dir <- tempfile(pattern = "subtitles_temp")
+  dir.create(temp_dir)
+  
+  temp_file <- tempfile(fileext = ".zip")
+  
+  #Télécharger le fichier zip
+  GET(download_url, write_disk(temp_file, overwrite = TRUE))
+  
+  #Extraire le fichier dans le dossier temporaire
+  unzip(temp_file, exdir = temp_dir)
+  
+  #Lister uniquement les fichiers dans le dossier temporaire
+  files <- list.files(temp_dir, recursive = TRUE, full.names = TRUE)
+  
+  #Filtrer les fichiers .nfo et les exclure
+  nfo_files <- files[grepl("\\.nfo$", files, ignore.case = TRUE)]
+  if (length(nfo_files) > 0) {
+    file.remove(nfo_files)
+  }
+  
+  srt_files <- files[grepl("\\.srt$", files, ignore.case = TRUE)]
+  
+  if (length(srt_files) > 0) {
+    #Déplacer les fichiers .srt dans le dossier des sous-titres
+    moved_files <- file.copy(srt_files, dest_dir, overwrite = TRUE)
+    
+    #Nettoyer le dossier temporaire
+    unlink(temp_dir, recursive = TRUE)
+    unlink(temp_file)
+    
+    message("Sous-titres téléchargés et extraits dans : ", dest_dir)
+    
+    #Retourner les nouveaux fichiers .srt
+    return(file.path(dest_dir, basename(srt_files[moved_files])) )
+  } else {
+    #Nettoyer même si l'échec est survenu
+    unlink(temp_dir, recursive = TRUE)
+    unlink(temp_file)
+    
+    message("Aucun fichier .srt trouvé dans l'archive téléchargée.")
+    return(NULL)
+  }
+}
+
+#Fonction principale pour interagir avec l'utilisateur
+main <- function() {
+  cat("Entrez le nom d'un film ou d'une série : ")
+  query <- readline()
+  
+  results <- get_open_subtitles_results(query)
+  
+  if (nrow(results) == 0) {
+    cat("Aucun résultat trouvé.\n")
+    return(NULL)
+  }
+  
+  cat("\nRésultats de la recherche :\n")
+  for (i in 1:nrow(results)) {
+    cat(i, ": ", results$movie_name[i], ", URL: ", results$link[i], "\n", sep = "")
+  }
+  
+  cat("\nChoisissez un numéro pour afficher les sous-titres correspondants : ")
+  choice <- as.numeric(readline())
+  
+  if (!is.na(choice) && choice > 0 && choice <= nrow(results)) {
+    selected_url <- results$link[choice]
+    subtitles <- get_subtitles(selected_url)
+    
+    if (length(subtitles) > 0) {
+      cat("\nSous-titres disponibles :\n")
+      for (i in seq_along(subtitles)) {
+        subtitle_parts <- gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1 \\2 \\3", subtitles[i])
+        subtitle_info <- strsplit(subtitle_parts, " ")[[1]]
+        id <- subtitle_info[1]
+        title <- subtitle_info[2]
+        language <- subtitle_info[3]
+        complete_url <- paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", id)
+        cat(i, ": ", title, " Langue: ", language, " URL: ", complete_url, "\n", sep = "")
+      }
+      
+      cat("\nSélectionnez un numéro pour télécharger les sous-titres correspondants : ")
+      sub_choice <- as.numeric(readline())
+      
+      if (!is.na(sub_choice) && sub_choice > 0 && sub_choice <= length(subtitles)) {
+        subtitle_parts <- gsub("^/fr/subtitles/(\\d+)/(.*)-(\\w{2})$", "\\1", subtitles[sub_choice])
+        download_url <- paste0("https://www.opensubtitles.org/fr/subtitleserve/sub/", subtitle_parts)
+        srt_files <- download_subtitle(download_url)
+        
+        if (!is.null(srt_files)) {
+          last_file <- tail(srt_files, n = 1)  # Travailler uniquement sur le dernier fichier téléchargé
+          output_file <- sub("\\.srt$", "_utf8.srt", last_file)
+          
+          final_file <- convert_to_utf8(last_file)
+          
+          #Enregistrer le chemin du fichier final dans la variable
+          inputfile <- final_file
+          cat("Chemin du fichier des sous-titres enregistré dans inputfile: ", inputfile, "\n")
+        }
+        
+        cat("Téléchargement et conversion terminés. Programme terminé.\n")
+        return()
+      } else {
+        cat("Choix invalide. Programme terminé.\n")
+        return()
+      }
+    } else {
+      cat("Aucun sous-titre trouvé pour ce film.\n")
+    }
+  } else {
+    cat("Choix invalide. Programme terminé.\n")
+  }
+}
+
+#Lancer le programme
+invisible(main())

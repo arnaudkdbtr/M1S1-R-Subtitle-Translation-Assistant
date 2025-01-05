@@ -118,7 +118,7 @@ Select the language you want to translate the subtitles into.
 
 Click on the Translate button and wait...
 
-_Note: Files uploaded to OpenSubtitles are movie subtitles, which can contain a large number of characters. Translation may take a few minutes (up to 5 minutes if the file is large)._
+_Note: Files uploaded to OpenSubtitles are movie subtitles, which can contain a large number of characters. Translation may take a few minutes (up to 5/6 minutes if the file is large)._
 
 ### Preview the Translated Subtitles :
 

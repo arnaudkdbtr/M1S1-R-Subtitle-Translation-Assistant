@@ -1,0 +1,99 @@
+---
+title: "Automatic Subtitle Translation"
+author: "KINDBEITER Arnaud, RAGUSA Simona"
+date: "14 janvier 2025"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+- **Problème** : Difficile de trouver des sous-titres adaptés lorsqu'on regarde des films dans différentes langues.
+- **Contexte** :
+Parfois, les sous-titres dans la langue désirée ne sont pas disponibles.
+Les services existants peuvent ne pas préserver la structure des sous-titres correctement.
+- **Solution** : Outil de traduction automatique des sous-titres dans la langue souhaitée, supportant plusieurs formats (.srt, .vtt).
+- **Objectif** : Améliorer l'expérience utilisateur en traduisant les sous-titres dans n'importe quelle langue préférée, tout en préservant leur structure originale.
+
+## Fonctionnalités principales
+
+- **Traduction automatique** :
+  Utilise les services DeepL et Google Translate pour garantir une traduction de qualité.
+
+- **Support des formats** :
+  Prise en charge des sous-titres aux formats `.srt` et `.vtt`.
+
+- **Recherche et téléchargement automatiques** :
+  Recherche des sous-titres disponibles pour un film et les télécharge automatiquement depuis OpenSubtitles.
+  
+- **Interface utilisateur** :
+  Une interface  intuitive pour charger des fichiers, sélectionner le service et la langue de traduction, puis télécharger les sous-titres traduits.
+
+## Détails techniques
+
+- **API Utilisées** :
+  - **DeepL** pour une traduction précise.
+  - **Google Translate** pour une couverture linguistique plus large.
+
+- **Gestion des encodages** :
+  Conversion automatique des fichiers en UTF-8 pour éviter les problèmes d'affichage de caractères spéciaux.
+
+- **Téléchargement automatique de sous-titres** :
+  Intégration avec **OpenSubtitles** pour automatiser la recherche et le téléchargement.
+
+## Processus d'utilisation
+
+1. **Recherche de sous-titres** : L'utilisateur entre le nom du film.
+Le programme recherche les sous-titres disponibles sur OpenSubtitles.
+
+2. **Téléchargement** : L'utilisateur sélectionne les sous-titres qu'il souhaite.
+Le programme télécharge le fichier `.srt`.
+
+3. **Traduction** : L'utilisateur choisit le service de traduction (DeepL ou Google Translate).
+Les sous-titres sont traduits dans la langue de son choix.
+
+4. **Prévisualisation et téléchargement** :
+L'utilisateur peut prévisualiser les sous-titres traduits et les télécharger au format `.srt`.
+
+## Défis rencontrés
+
+- **Limites des API** : 
+DeepL a des quotas d'utilisation limités pour les comptes gratuits.
+Google Translate peut retourner des erreurs sur certaines langues.
+  
+- **Préservation de la structure** : 
+  Assurer que le fichier sous-titres conserve la même structure (ligne de timing, numéros de lignes, notes...)
+
+- **Gestion des erreurs** : 
+Gérer les erreurs de traduction ou de format non supporté.
+Traitement des cas où les sous-titres ne sont pas disponibles ou ne sont pas valides.
+
+- **Problèmes d'encodage** :
+Encodages de fichiers variés (UTF-8, ISO-8859-1, etc.) nécessitant une conversion  pour garantir un affichage correct des caractères spéciaux après téléchargement.
+
+## Interface utilisateur 
+
+![Capture d'écran de l'interface](/Users/arnaudkindbeiter/Desktop/subtitles/Interface.png)
+
+- Une interface simple pour uploader, traduire et prévisualiser les sous-titres.
+- Possibilité de choisir le service de traduction et la langue cible.
+  
+## Forces et faiblesses
+
+- **Forces** :
+  - Interface utilisateur simple à utiliser.
+  - Support de plusieurs services de traduction.
+  - Plus de 240 langues.
+  
+- **Faiblesses** :
+  - Dépendance aux API externes pour les traductions.
+  - Temps de traitement long pour les fichiers de sous-titres volumineux (6min environ pour un film).
+  
+## Conclusion
+
+- **Résumé** : Nous avons développé un outil qui simplifie la traduction des sous-titres dans n'importe quelle langue.
+
+- **Github** : Retrouvez notre code et documentation sur github : (https://github.com/arnaudkdbtr/M1-R-Programming-Project)

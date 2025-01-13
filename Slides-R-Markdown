@@ -1,6 +1,6 @@
 ---
-title: "Automatic Subtitle Translation"
-author: "KINDBEITER Arnaud, RAGUSA Simona"
+title: "Traduction automatique de sous-titres"
+author: "RAGUSA Simona, KINDBEITER Arnaud"
 date: "14 janvier 2025"
 output: beamer_presentation
 ---
@@ -58,6 +58,35 @@ Les sous-titres sont traduits dans la langue de son choix.
 4. **Prévisualisation et téléchargement** :
 L'utilisateur peut prévisualiser les sous-titres traduits et les télécharger au format `.srt`.
 
+## Exemple d'utilisation
+
+**L'utilisateur entre le nom d'un film :** "La Haine".
+
+`Search results :`
+
+`1: La haine (1995), URL : /search/sublanguageid-all/idmovie-3292`.  
+`2: Romeo & Juliette: De la haine a l'amour (2002), URL : /search/sublanguageid-all/idmovie-37310`.  
+
+**L'utilisateur choisit le résultat souhaité :** "1"
+
+`Available subtitles :`
+
+`1: la-haine Language : tr URL : /subtitleserve/sub/12874982`.  
+`2: la-haine Language : de URL : /subtitleserve/sub/12855448`.  
+
+**L'utilisateur choisit le fichier à télécharger :** "2" , le fichier se télécharge puis l'interface s'ouvre
+
+## Interface utilisateur 
+
+![Capture d'écran de l'interface](/Users/arnaudkindbeiter/Desktop/subtitles/Interface.png)
+
+Une interface simple pour :  
+- Uploader des fichiers  
+- Choisir la langue et le service  
+- Prévisualiser le fichier traduit  
+- Télécharger le fichier traduit
+  
+
 ## Défis rencontrés
 
 - **Limites des API** : 
@@ -73,13 +102,6 @@ Traitement des cas où les sous-titres ne sont pas disponibles ou ne sont pas va
 
 - **Problèmes d'encodage** :
 Encodages de fichiers variés (UTF-8, ISO-8859-1, etc.) nécessitant une conversion  pour garantir un affichage correct des caractères spéciaux après téléchargement.
-
-## Interface utilisateur 
-
-![Capture d'écran de l'interface](/Users/arnaudkindbeiter/Desktop/subtitles/Interface.png)
-
-- Une interface simple pour uploader, traduire et prévisualiser les sous-titres.
-- Possibilité de choisir le service de traduction et la langue cible.
   
 ## Forces et faiblesses
 
@@ -95,5 +117,13 @@ Encodages de fichiers variés (UTF-8, ISO-8859-1, etc.) nécessitant une convers
 ## Conclusion
 
 - **Résumé** : Nous avons développé un outil qui simplifie la traduction des sous-titres dans n'importe quelle langue.
+
+<br>
+
+- **Perspectives d'améliorations** :  
+Ajouter la compatibilité avec d'autres formats de sous-titres.  
+Optimiser le temps de traitement.
+
+<br>
 
 - **Github** : Retrouvez notre code et documentation sur github : (https://github.com/arnaudkdbtr/M1-R-Programming-Project)

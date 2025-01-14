@@ -1,6 +1,4 @@
-# **Subtitle Translation Assistant**
-
-Simona RAGUSA / Arnaud KINDBEITER
+# **Subtitle Translation Assistant** (Simona RAGUSA / Arnaud KINDBEITER)
 
 As students speaking different languages, we realized how difficult it is to find suitable subtitles for a movie. For instance, to understand the film, we need the subtitles in Italian and the voices in French, or vice versa. This situation led us to create a tool that automatically translates subtitles into the desired language, regardless of the original language of the movie or TV show.
 

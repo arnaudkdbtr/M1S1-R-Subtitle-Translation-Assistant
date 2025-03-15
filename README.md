@@ -1,7 +1,5 @@
 # **Subtitle Translation Assistant** 
 
-(Simona RAGUSA / Arnaud KINDBEITER)
-
 As students speaking different languages, we realized how difficult it is to find suitable subtitles for a movie. For instance, to understand the film, we need the subtitles in Italian and the voices in French, or vice versa. This situation led us to create a tool that automatically translates subtitles into the desired language, regardless of the original language of the movie or TV show.
 
 The goal of this project is to enhance the user experience by translating subtitles into any preferred language. Whether you're watching a movie in Italian with French subtitles, in English with Spanish subtitles, or in any other language combination, this tool allows you to easily translate the subtitles to any language of your choice. The project supports various subtitle formats, such as .srt and .vtt, and integrates with popular translation services like DeepL and Google Translate.
@@ -139,3 +137,10 @@ To download the final translated subtitle file, click on Download translated sub
 - Additional Subtitle Formats : Support for more subtitle formats (e.g., .ass, .sub) will be added.
 
 - ChatGPT (OpenAI) API Support : Integration of the ChatGPT (OpenAI) API to translate subtitle files (But using the API is not free).
+
+## Authors
+
+- Simona RAGUSA
+- Arnaud KINDBEITER
+
+  

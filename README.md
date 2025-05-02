@@ -1,3 +1,9 @@
+![R Version](https://img.shields.io/badge/R-4.0%2B-blue)
+![Shiny App](https://img.shields.io/badge/Interface-Shiny-brightgreen)
+![Subtitle Formats](https://img.shields.io/badge/Formats-.srt%20%7C%20.vtt-yellow)
+![Translation API](https://img.shields.io/badge/APIs-DeepL%20%7C%20Google-orange)
+![OpenSubtitles](https://img.shields.io/badge/Source-OpenSubtitles-lightblue)
+
 # **Subtitle Translation Assistant** 
 
 As students speaking different languages, we realized how difficult it is to find suitable subtitles for a movie. For instance, to understand the film, we need the subtitles in Italian and the voices in French, or vice versa. This situation led us to create a tool that automatically translates subtitles into the desired language, regardless of the original language of the movie or TV show.
